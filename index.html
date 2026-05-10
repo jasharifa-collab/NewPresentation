@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Deepwater Horizon | عرض تفاعلي</title>
+  <style>
+    :root{
+      --orange:#ff7a1a;
+      --orange2:#ffb15c;
+      --ink:#050706;
+      --panel:rgba(4,10,9,.74);
+      --text:#f4efe7;
+      --muted:#d9d2c7;
+      --line:rgba(255,122,26,.75);
+      --soft:rgba(255,122,26,.12);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%;overflow:hidden;background:#020403;color:var(--text);font-family:Cairo, Tahoma, Arial, sans-serif}
+    body::before{
+      content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+      background:
+        radial-gradient(circle at 18% 22%, rgba(255,122,26,.13), transparent 22%),
+        radial-gradient(circle at 80% 90%, rgba(255,122,26,.10), transparent 26%),
+        linear-gradient(135deg,#050706,#0b1110 46%,#020302);
+    }
+    .app{position:relative;z-index:1;width:100vw;height:100vh;display:grid;place-items:center;padding:28px}
+    .frame{
+      position:relative;width:min(96vw, 1500px);aspect-ratio:16/9;max-height:calc(100vh - 56px);
+      border-radius:26px;overflow:hidden;background:#06100e;
+      box-shadow:0 34px 90px rgba(0,0,0,.72), 0 0 0 1px rgba(255,122,26,.18) inset;
+      isolation:isolate;
+    }
+    .frame::before{
+      content:"";position:absolute;inset:0;z-index:20;pointer-events:none;
+      background:
+        linear-gradient(90deg, rgba(255,122,26,.0), rgba(255,122,26,.10), rgba(255,122,26,0));
+      transform:translateX(120%);animation:sheen 5.7s ease-in-out infinite;
+      mix-blend-mode:screen;
+    }
+    @keyframes sheen{0%,35%{transform:translateX(120%) skewX(-12deg)}62%{transform:translateX(-120%) skewX(-12deg)}100%{transform:translateX(-120%) skewX(-12deg)}}
+    .slide{position:absolute;inset:0;opacity:0;transform:scale(1.03);transition:opacity .75s ease, transform .75s ease;pointer-events:none;background:#020403}
+    .slide.active{opacity:1;transform:scale(1);pointer-events:auto}
+    .slide img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:contrast(1.04) saturate(1.02);transform:scale(1.035);transition:transform 6s ease, filter 1s ease}
+    .slide.active img{transform:scale(1)}
+    .slide::after{
+      content:"";position:absolute;inset:0;pointer-events:none;z-index:2;
+      background:radial-gradient(circle at 65% 12%, rgba(255,122,26,.13), transparent 18%), linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.14));
+    }
+    .particles{position:absolute;inset:0;z-index:4;pointer-events:none;overflow:hidden}
+    .particle{position:absolute;width:4px;height:4px;border-radius:50%;background:var(--orange);opacity:.45;filter:blur(.3px);animation:floatUp linear infinite}
+    @keyframes floatUp{from{transform:translateY(45px);opacity:0}20%{opacity:.55}to{transform:translateY(-220px);opacity:0}}
+    .hotspot{
+      position:absolute;z-index:9;width:18px;height:18px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 0 rgba(255,122,26,.45),0 0 22px rgba(255,122,26,.85);cursor:pointer;animation:pulse 1.45s infinite;
+      transform:translate(-50%,-50%);
+    }
+    .hotspot::before{content:"";position:absolute;inset:-12px;border:1px solid rgba(255,122,26,.5);border-radius:50%;animation:ring 1.45s infinite}
+    @keyframes pulse{50%{transform:translate(-50%,-50%) scale(1.18);box-shadow:0 0 0 14px rgba(255,122,26,0),0 0 32px rgba(255,122,26,1)}}
+    @keyframes ring{to{transform:scale(1.55);opacity:0}}
+    .tip{
+      position:absolute;z-index:12;min-width:250px;max-width:360px;background:linear-gradient(180deg,rgba(7,17,15,.96),rgba(2,5,4,.96));border:1px solid var(--line);border-radius:18px;padding:16px 18px;box-shadow:0 18px 50px rgba(0,0,0,.48);opacity:0;transform:translateY(10px);pointer-events:none;transition:.25s ease;text-align:right;
+    }
+    .tip.show{opacity:1;transform:translateY(0)}
+    .tip h3{margin:0 0 6px;font-size:19px;color:var(--orange);font-weight:900}.tip p{margin:0;font-size:15px;line-height:1.7;color:var(--text)}
+    .controls{position:absolute;z-index:40;left:50%;bottom:16px;transform:translateX(-50%);display:flex;gap:12px;align-items:center;background:rgba(0,0,0,.52);backdrop-filter:blur(12px);border:1px solid rgba(255,122,26,.22);padding:9px 13px;border-radius:999px;box-shadow:0 16px 38px rgba(0,0,0,.35)}
+    button{font-family:inherit;border:none;cursor:pointer;color:var(--text)}
+    .circle-btn{width:43px;height:43px;border-radius:50%;display:grid;place-items:center;background:rgba(7,16,14,.9);border:1px solid rgba(255,122,26,.56);color:var(--orange);font-size:22px;transition:.25s}
+    .circle-btn:hover{background:var(--orange);color:#111;transform:translateY(-3px)}
+    .dots{display:flex;gap:8px;padding:0 6px}.dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.34);transition:.25s;cursor:pointer}.dot.active{width:30px;border-radius:999px;background:var(--orange);box-shadow:0 0 18px rgba(255,122,26,.8)}
+    .topbar{position:absolute;top:18px;left:20px;right:20px;z-index:40;display:flex;align-items:center;justify-content:space-between;pointer-events:none}
+    .badge{pointer-events:auto;display:flex;align-items:center;gap:10px;background:rgba(0,0,0,.42);border:1px solid rgba(255,122,26,.25);border-radius:999px;padding:10px 15px;color:var(--muted);font-size:14px;font-weight:700;backdrop-filter:blur(10px)}
+    .progress{position:absolute;inset:auto 0 0 0;height:5px;background:rgba(255,255,255,.08);z-index:41}.bar{height:100%;width:20%;background:linear-gradient(90deg,var(--orange),var(--orange2));box-shadow:0 0 20px rgba(255,122,26,.55);transition:width .45s ease}
+    .stage-label{position:absolute;z-index:35;right:24px;bottom:22px;background:rgba(0,0,0,.42);border:1px solid rgba(255,122,26,.28);border-radius:14px;padding:10px 14px;color:var(--muted);font-weight:800;font-size:14px;backdrop-filter:blur(10px)}
+    .stage-label b{color:var(--orange)}
+    .fade-word{position:absolute;z-index:8;top:50%;right:50%;transform:translate(50%,-50%);font-size:14vw;font-weight:900;color:rgba(255,122,26,.035);white-space:nowrap;letter-spacing:-4px;pointer-events:none;animation:ghost 6s infinite alternate}
+    @keyframes ghost{from{opacity:.45;transform:translate(50%,-50%) scale(.98)}to{opacity:.85;transform:translate(50%,-50%) scale(1.04)}}
+    .notes-panel{position:absolute;z-index:60;top:0;bottom:0;right:0;width:min(430px,88vw);background:rgba(3,7,6,.93);border-left:1px solid var(--line);box-shadow:-22px 0 60px rgba(0,0,0,.45);padding:28px;transform:translateX(105%);transition:.38s ease;backdrop-filter:blur(12px);overflow:auto}
+    .notes-panel.show{transform:translateX(0)}
+    .notes-panel h2{margin:0 0 14px;color:var(--orange);font-size:26px}.notes-panel p{font-size:17px;line-height:1.9;color:var(--text)}.notes-panel ul{padding-right:22px;line-height:2}.notes-panel li::marker{color:var(--orange)}
+    .close{float:left;background:transparent;color:var(--orange);font-size:28px}
+    @media(max-width:900px){.app{padding:0}.frame{width:100vw;height:100vh;max-height:none;border-radius:0;aspect-ratio:auto}.stage-label,.badge:nth-child(2){display:none}.controls{bottom:12px}.tip{display:none}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="frame" id="frame">
+      <div class="topbar">
+        <div class="badge">Deepwater Horizon • HTML Interactive</div>
+        <div class="badge">استخدم الأسهم أو الأزرار للتنقل</div>
+      </div>
+      <div class="progress"><div class="bar" id="bar"></div></div>
+      <div class="stage-label"><b id="currentNo">1</b> / 5</div>
+      <div class="fade-word" id="ghostWord">النفط</div>
+      <div class="particles" id="particles"></div>
+
+      <section class="slide active" data-title="الغلاف" data-note="تبدأ الشريحة بقصة الكارثة بصريًا: منصة نفط، بحر ملوث، وأرقام موجزة تجعل الجمهور يفهم حجم الحدث من اللحظة الأولى."><img src="assets/slide-1.jpg" alt="الشريحة 1"></section>
+      <section class="slide" data-title="مقدمة عن الكارثة" data-note="هذه الشريحة مناسبة للشرح الزمني: انفجار، غرق المنصة، تسرب النفط، ثم السيطرة بعد 87 يومًا. ركّز على أن الحادثة تحولت من خلل صناعي إلى أزمة بيئية واقتصادية."><img src="assets/slide-2.jpg" alt="الشريحة 2"></section>
+      <section class="slide" data-title="المشكلة البيئية" data-note="هنا يتم توضيح المشكلة الأساسية: النفط لا يبقى مجرد بقعة على الماء؛ بل ينتقل أثره إلى الأكسجين، الطيور، الأسماك، السلسلة الغذائية، والسواحل."><img src="assets/slide-3.jpg" alt="الشريحة 3"></section>
+      <section class="slide" data-title="الآثار البيئية والاقتصادية" data-note="قسّم الحديث إلى آثار بيئية وآثار اقتصادية. الفكرة المهمة: الضرر استمر لسنوات، ولم يكن أثرًا لحظيًا فقط."><img src="assets/slide-4.jpg" alt="الشريحة 4"></section>
+      <section class="slide" data-title="التوصيات" data-note="اختتم بمنطق الحلول: الوقاية قبل الحادث، المراقبة المبكرة، الاستجابة السريعة، ثم الترميم والمساءلة. هذه الخاتمة تربط الكارثة بدروس عملية."><img src="assets/slide-5.jpg" alt="الشريحة 5"></section>
+
+      <div class="tip" id="tip"><h3></h3><p></p></div>
+      <aside class="notes-panel" id="notes"><button class="close" id="closeNotes">×</button><h2 id="noteTitle"></h2><p id="noteText"></p><ul><li>استخدم وضع ملء الشاشة أثناء العرض.</li><li>يمكن الضغط على النقاط البرتقالية لاستكشاف عناصر السلايد.</li><li>يمكن تعديل الصور من مجلد assets بسهولة.</li></ul></aside>
+
+      <div class="controls">
+        <button class="circle-btn" id="next" title="التالي">›</button>
+        <div class="dots" id="dots"></div>
+        <button class="circle-btn" id="prev" title="السابق">‹</button>
+        <button class="circle-btn" id="notesBtn" title="ملاحظات">☰</button>
+        <button class="circle-btn" id="fs" title="ملء الشاشة">⛶</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const slides=[...document.querySelectorAll('.slide')];
+    const dots=document.getElementById('dots');
+    const bar=document.getElementById('bar');
+    const currentNo=document.getElementById('currentNo');
+    const particles=document.getElementById('particles');
+    const tip=document.getElementById('tip');
+    const ghostWord=document.getElementById('ghostWord');
+    const notes=document.getElementById('notes');
+    const noteTitle=document.getElementById('noteTitle');
+    const noteText=document.getElementById('noteText');
+    let current=0;
+
+    const ghostWords=['النفط','الأثر','البيئة','الاقتصاد','الوقاية'];
+    const hotspots=[
+      [
+        {x:79,y:69,t:'2010',d:'تاريخ الحادث وبداية واحدة من أكبر كوارث التلوث النفطي البحري.'},
+        {x:64,y:69,t:'خليج المكسيك',d:'الموقع الذي شهد انفجار منصة Deepwater Horizon وتسرب النفط.'},
+        {x:49,y:69,t:'تسرب نفطي ضخم',d:'الحادثة أدت إلى تسرب كميات هائلة من النفط الخام في البحر.'}
+      ],
+      [
+        {x:82,y:62,t:'انفجار',d:'نقطة البداية في سلسلة الأحداث التي تسببت بالكارثة.'},
+        {x:61,y:62,t:'تسرب النفط',d:'استمر التسرب لفترة طويلة قبل السيطرة عليه.'},
+        {x:79,y:85,t:'20 أبريل 2010',d:'تاريخ بداية الحادثة.'},
+        {x:54,y:85,t:'87 يومًا',d:'المدة التقريبية التي استمر فيها التسرب.'}
+      ],
+      [
+        {x:77,y:39,t:'المشكلة الأساسية',d:'تسرب النفط إلى البيئة البحرية بكميات ضخمة.'},
+        {x:77,y:56,t:'تأثيرات بيئية',d:'النفط يضر الأكسجين والطيور والكائنات البحرية والسلسلة الغذائية.'},
+        {x:66,y:78,t:'سلسلة التأثير',d:'انتقال الضرر من تلوث المياه إلى خسائر بيئية واقتصادية.'}
+      ],
+      [
+        {x:75,y:43,t:'الآثار البيئية',d:'تضرر الموائل والحياة البحرية واضطراب السلسلة الغذائية.'},
+        {x:55,y:43,t:'الآثار الاقتصادية',d:'تراجع الصيد والسياحة وارتفاع تكاليف التنظيف والترميم.'},
+        {x:73,y:72,t:'تحليل مختصر',d:'الضرر طويل المدى ولا يقاس فقط بكمية النفط المتسربة.'},
+        {x:63,y:86,t:'134 مليون جالون',d:'رقم داعم يوضح حجم التسرب النفطي.'}
+      ],
+      [
+        {x:84,y:47,t:'الوقاية',d:'تبدأ حماية البيئة قبل وقوع الكارثة من خلال السلامة والتدريب.'},
+        {x:68,y:47,t:'المراقبة',d:'الحساسات والأقمار الصناعية تساعد على الاكتشاف المبكر.'},
+        {x:52,y:47,t:'الاستجابة',d:'سرعة احتواء النفط تحد من انتشار الضرر.'},
+        {x:36,y:47,t:'الترميم',d:'تعويض المتضررين وإعادة تأهيل الموائل جزء أساسي من الحل.'},
+        {x:76,y:81,t:'الخلاصة',d:'الحماية الحقيقية تبدأ قبل الكارثة: تصميم آمن ورقابة مستمرة واستجابة شفافة.'}
+      ]
+    ];
+
+    slides.forEach((_,i)=>{
+      const dot=document.createElement('button');dot.className='dot'+(i===0?' active':'');dot.ariaLabel='الشريحة '+(i+1);dot.onclick=()=>go(i);dots.appendChild(dot);
+    });
+
+    function createParticles(){
+      particles.innerHTML='';
+      for(let i=0;i<46;i++){
+        const p=document.createElement('span');p.className='particle';
+        p.style.left=Math.random()*100+'%';p.style.top=(55+Math.random()*48)+'%';
+        p.style.animationDuration=(5+Math.random()*8)+'s';p.style.animationDelay=(-Math.random()*8)+'s';
+        p.style.opacity=.18+Math.random()*.45;particles.appendChild(p);
+      }
+    }
+
+    function renderHotspots(){
+      document.querySelectorAll('.hotspot').forEach(h=>h.remove());tip.classList.remove('show');
+      hotspots[current].forEach(h=>{
+        const el=document.createElement('button');el.className='hotspot';el.style.left=h.x+'%';el.style.top=h.y+'%';el.title=h.t;
+        el.onclick=(ev)=>{ev.stopPropagation();showTip(h,el)};
+        document.getElementById('frame').appendChild(el);
+      });
+    }
+    function showTip(h,el){
+      tip.querySelector('h3').textContent=h.t;tip.querySelector('p').textContent=h.d;
+      const frame=document.getElementById('frame').getBoundingClientRect();const r=el.getBoundingClientRect();
+      let left=r.left-frame.left-280;let top=r.top-frame.top+22;
+      if(left<18) left=r.left-frame.left+28;if(top>frame.height-160) top=frame.height-180;
+      tip.style.left=left+'px';tip.style.top=top+'px';tip.classList.add('show');
+    }
+
+    function go(i){
+      slides[current].classList.remove('active');dots.children[current].classList.remove('active');
+      current=(i+slides.length)%slides.length;
+      slides[current].classList.add('active');dots.children[current].classList.add('active');
+      currentNo.textContent=current+1;bar.style.width=((current+1)/slides.length*100)+'%';ghostWord.textContent=ghostWords[current];renderHotspots();
+      notes.classList.remove('show');
+    }
+    document.getElementById('next').onclick=()=>go(current+1);
+    document.getElementById('prev').onclick=()=>go(current-1);
+    document.getElementById('fs').onclick=()=>{const f=document.getElementById('frame'); if(!document.fullscreenElement) f.requestFullscreen?.(); else document.exitFullscreen?.();};
+    document.getElementById('notesBtn').onclick=()=>{noteTitle.textContent=slides[current].dataset.title;noteText.textContent=slides[current].dataset.note;notes.classList.add('show')};
+    document.getElementById('closeNotes').onclick=()=>notes.classList.remove('show');
+    document.addEventListener('keydown',e=>{if(e.key==='ArrowLeft')go(current+1); if(e.key==='ArrowRight')go(current-1); if(e.key==='Escape')notes.classList.remove('show')});
+    document.getElementById('frame').addEventListener('click',()=>tip.classList.remove('show'));
+    createParticles();renderHotspots();
+  </script>
+</body>
+</html>
